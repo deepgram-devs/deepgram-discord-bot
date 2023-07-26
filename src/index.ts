@@ -3,6 +3,7 @@ import { Client, Events } from "discord.js";
 import { IntentOptions } from "./config/IntentOptions";
 import { interactionCreate } from "./events/interactionCreate";
 import { ExtendedClient } from "./interfaces/ExtendedClient";
+import { sendStickyMessage } from "./modules/sendStickyMessage";
 import { errorHandler } from "./utils/errorHandler";
 import { loadChannels } from "./utils/loadChannels";
 import { loadContexts } from "./utils/loadContexts";
@@ -24,6 +25,10 @@ import { validateEnv } from "./utils/validateEnv";
       await loadChannels(bot);
       await registerCommands(bot);
       logHandler.log("info", "Bot is ready.");
+      setInterval(
+        async () => await sendStickyMessage(bot),
+        bot.env.stickyFrequency * 1000 * 60
+      );
     });
 
     await bot.login(bot.env.token);
