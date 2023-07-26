@@ -1,5 +1,6 @@
 // import fetch from "node-fetch";
 
+// import { AiEndpoints } from "../config/AiEndpoints";
 import { ResponseText } from "../config/ResponseText";
 import { AiEndpoint } from "../interfaces/AiEndpoint";
 import { ExtendedClient } from "../interfaces/ExtendedClient";
@@ -25,8 +26,9 @@ export const makeAiRequest = async (
     if (!url) {
       return ResponseText.NoAiUrl;
     }
+    // const urlWithEndpoint = url + AiEndpoints[endpoint];
     if (endpoint === "response") {
-      // const req = await fetch(url + endpoint, {
+      // const req = await fetch(urlWithEndpoint, {
       //   method: "POST",
       //   headers: {
       //     "content-type": "application/json",
@@ -40,7 +42,7 @@ export const makeAiRequest = async (
     if (!response) {
       return ResponseText.NoAiResponseArg;
     }
-    //   await fetch(url + endpoint, {
+    //   await fetch(urlWithEndpoint, {
     //     method: "POST",
     //     headers: {
     //       "content-type": "application/json",
