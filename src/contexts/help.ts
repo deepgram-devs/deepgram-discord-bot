@@ -7,7 +7,7 @@ import { errorHandler } from "../utils/errorHandler";
 
 export const help: Context = {
   data: {
-    name: "help",
+    name: "← to #get-some-help",
     type: 3,
   },
   run: async (bot, interaction) => {
@@ -35,7 +35,7 @@ export const help: Context = {
         name: `Help Requested by ${author.username}`,
         autoArchiveDuration: 1440,
         message: {
-          content: `Hey <@!${author.id}>, your question has been moved here!\n\n${content}`,
+          content: `Hey <@!${author.id}>, your question has been moved here!\n\n<@!${author.id}> said:\n> ${content}`,
         },
         appliedTags: [bot.cache.questionTag],
       });
