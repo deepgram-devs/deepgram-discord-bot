@@ -20,7 +20,7 @@ dependencies:
 
 devDependencies:
   '@flydotio/dockerfile':
-    specifier: ^0.4.0
+    specifier: 0.4.0
     version: 0.4.0
   '@nhcarrigan/eslint-config':
     specifier: 1.1.3
