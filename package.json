@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/nhcarrigan/deepgram-bot#readme",
   "dependencies": {
-    "@octokit/graphql": "7.0.2",
+    "@octokit/graphql": "7.1.0",
     "discord.js": "14.14.1",
     "dotenv": "16.4.5",
     "node-fetch": "2",
