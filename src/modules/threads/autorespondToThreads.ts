@@ -1,5 +1,6 @@
 import { ExtendedClient } from "../../interfaces/ExtendedClient";
 import { errorHandler } from "../../utils/errorHandler";
+import { fetchHelpThreads } from "../fetchHelpThreads";
 
 /**
  * Fetches the threads from the help channel, finds unanswered threads, posts a response to
@@ -9,11 +10,7 @@ import { errorHandler } from "../../utils/errorHandler";
  */
 export const autorespondToThreads = async (bot: ExtendedClient) => {
   try {
-    const archived = (
-      await bot.cache.helpChannel.threads.fetchArchived({ fetchAll: true })
-    ).threads;
-    const active = (await bot.cache.helpChannel.threads.fetchActive()).threads;
-    const threads = [...archived.map((e) => e), ...active.map((e) => e)];
+    const threads = await fetchHelpThreads(bot);
     /**
      * We don't need to run our logic on any thread that has been
      * flagged as answered, or any thread which has already become

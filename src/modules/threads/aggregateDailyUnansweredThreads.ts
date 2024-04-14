@@ -1,6 +1,7 @@
 import { ExtendedClient } from "../../interfaces/ExtendedClient";
 import { errorHandler } from "../../utils/errorHandler";
 import { stripLinks } from "../../utils/stripLinks";
+import { fetchHelpThreads } from "../fetchHelpThreads";
 
 /**
  * Fetches the threads from the help channel, finds the three most recent threads without
@@ -19,12 +20,13 @@ export const aggregateDailyUnansweredThreads = async (bot: ExtendedClient) => {
     if (lastMessage?.author.id === bot.user?.id) {
       return;
     }
-    const threads = (await bot.cache.helpChannel.threads.fetchActive()).threads;
+    const threads = await fetchHelpThreads(bot);
     const unanswered = threads.filter(
-      (thread) => !thread.appliedTags.includes(bot.cache.answerTag)
+      (thread) =>
+        !thread.appliedTags.includes(bot.cache.answerTag) &&
+        !thread.appliedTags.includes(bot.cache.inactiveTag)
     );
     const firstThree = unanswered
-      .map((e) => e)
       .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0))
       .slice(0, 3);
 

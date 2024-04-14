@@ -1,6 +1,7 @@
 import { ExtendedClient } from "../../interfaces/ExtendedClient";
 import { errorHandler } from "../../utils/errorHandler";
 import { stripLinks } from "../../utils/stripLinks";
+import { fetchHelpThreads } from "../fetchHelpThreads";
 
 /**
  * Fetches the threads from the help channel, finds answered threads within the last week,
@@ -10,11 +11,7 @@ import { stripLinks } from "../../utils/stripLinks";
  */
 export const aggregateWeeklyThreads = async (bot: ExtendedClient) => {
   try {
-    const archived = (
-      await bot.cache.helpChannel.threads.fetchArchived({ fetchAll: true })
-    ).threads;
-    const active = (await bot.cache.helpChannel.threads.fetchActive()).threads;
-    const threads = [...archived.map((e) => e), ...active.map((e) => e)];
+    const threads = await fetchHelpThreads(bot);
     const answered = threads
       .filter((thread) => thread.appliedTags.includes(bot.cache.answerTag))
       .map((e) => e)

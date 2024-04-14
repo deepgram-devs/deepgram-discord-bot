@@ -45,7 +45,7 @@ import { validateEnv } from "./utils/validateEnv";
         bot.env.stickyFrequency * 1000 * 60
       );
 
-      scheduleJob("0 8 * * *", async () => {
+      scheduleJob("0 6 * * *", async () => {
         await autorespondToThreads(bot);
       });
 

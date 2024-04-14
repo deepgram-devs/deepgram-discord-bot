@@ -6,6 +6,7 @@ import {
 
 import { ResponseText } from "../config/ResponseText";
 import { Command } from "../interfaces/Command";
+import { fetchHelpThreads } from "../modules/fetchHelpThreads";
 import { errorHandler } from "../utils/errorHandler";
 
 export const stats: Command = {
@@ -30,13 +31,7 @@ export const stats: Command = {
         return;
       }
 
-      const rawArchived = await bot.cache.helpChannel.threads.fetchArchived({
-        fetchAll: true,
-      });
-      const archived = rawArchived.threads;
-      const active = (await bot.cache.helpChannel.threads.fetchActive())
-        .threads;
-      const threads = [...archived.map((e) => e), ...active.map((e) => e)];
+      const threads = await fetchHelpThreads(bot);
       const sorted = threads
         .map((e) => e)
         .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0));

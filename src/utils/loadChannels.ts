@@ -1,6 +1,7 @@
 import { ChannelType } from "discord.js";
 
 import { ExtendedClient } from "../interfaces/ExtendedClient";
+import { fetchHelpThreads } from "../modules/fetchHelpThreads";
 
 import { errorHandler } from "./errorHandler";
 import { logHandler } from "./logHandler";
@@ -89,12 +90,7 @@ export const loadChannels = async (bot: ExtendedClient) => {
 
     logHandler.debug("Loading help threads to cache.");
 
-    const rawArchived = await bot.cache.helpChannel.threads.fetchArchived({
-      fetchAll: true,
-    });
-    const archived = rawArchived.threads;
-    const active = (await bot.cache.helpChannel.threads.fetchActive()).threads;
-    const threads = [...archived.map((e) => e), ...active.map((e) => e)];
+    const threads = await fetchHelpThreads(bot);
     const sorted = threads
       .map((e) => e)
       .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0));
