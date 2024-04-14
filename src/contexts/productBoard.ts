@@ -48,6 +48,15 @@ export const productBoard: Context = {
         }),
       });
       const res = (await req.json()) as { links: { html: string } };
+      if (!res.links) {
+        await interaction.editReply({
+          content:
+            "Unexpected response format:\n```json\n" +
+            JSON.stringify(res, null, 2) +
+            "\n```",
+        });
+        return;
+      }
       await interaction.editReply({
         content: `[Note created](<${res.links.html}>)`,
       });
