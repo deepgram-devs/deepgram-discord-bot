@@ -13,7 +13,21 @@ export const stats: Command = {
   data: new SlashCommandBuilder()
     .setName("stats")
     .setDescription("Generate a report on help threads.")
-    .setDMPermission(false),
+    .setDMPermission(false)
+    .addNumberOption((o) =>
+      o
+        .setName("start")
+        .setDescription(
+          "Timestamp (in ms) of time you'd like to start tracking from."
+        )
+    )
+    .addNumberOption((o) =>
+      o
+        .setName("end")
+        .setDescription(
+          "Timestamp (in ms) of time you'd like to end tracking from."
+        )
+    ),
   run: async (bot, interaction) => {
     try {
       await interaction.deferReply({ ephemeral: true });
@@ -32,9 +46,22 @@ export const stats: Command = {
       }
 
       const threads = await fetchHelpThreads(bot);
-      const sorted = threads
+      let sorted = threads
         .map((e) => e)
         .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0));
+      const start = interaction.options.getNumber("start");
+      const end = interaction.options.getNumber("end");
+
+      if (start) {
+        sorted = sorted.filter(
+          (t) => t.createdTimestamp && t.createdTimestamp >= start
+        );
+      }
+      if (end) {
+        sorted = sorted.filter(
+          (t) => t.createdTimestamp && t.createdTimestamp <= end
+        );
+      }
 
       const total = sorted.length;
       const answeredArray = sorted.filter((thread) =>
