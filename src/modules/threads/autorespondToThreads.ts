@@ -31,7 +31,17 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
       const latestMessages = await thread.messages.fetch();
       const starterMessage = await thread.fetchStarterMessage();
       const owner = await thread.fetchOwner();
+      /**
+       * If the bot can't see the last message or the thread owner, then
+       * apply the inactive label so the bot doesn't process it anymore. Since
+       * this should really only happen if the OP leaves the server, this should
+       * be safe to do...
+       */
       if (!lastMessage || !owner) {
+        await thread.setAppliedTags([
+          ...thread.appliedTags,
+          bot.cache.inactiveTag,
+        ]);
         continue;
       }
       /**
@@ -52,6 +62,7 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
           ...thread.appliedTags,
           bot.cache.inactiveTag,
         ]);
+        continue;
       }
       /**
        * We don't want to respond if the last message in the thread
@@ -88,10 +99,7 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
       ) {
         continue;
       }
-      if (
-        lastMessage.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 8 &&
-        lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 7
-      ) {
+      if (lastMessage.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 7) {
         /**
          * When the last message is from the bot, it's the auto-response
          * message. Instead of responding again, we just want to close it.
