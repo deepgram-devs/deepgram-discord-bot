@@ -15,7 +15,6 @@ import { healthCheck } from "./utils/healthCheck";
 import { loadChannels } from "./utils/loadChannels";
 import { loadCommands } from "./utils/loadCommands";
 import { loadContexts } from "./utils/loadContexts";
-import { logHandler } from "./utils/logHandler";
 import { registerCommands } from "./utils/registerCommands";
 import { validateEnv } from "./utils/validateEnv";
 
@@ -33,7 +32,9 @@ import { validateEnv } from "./utils/validateEnv";
     bot.on(Events.ClientReady, async () => {
       await loadChannels(bot);
       await registerCommands(bot);
-      logHandler.log("info", "Bot is ready.");
+      await bot.env.debugHook.send({
+        content: `Logged in as ${bot.user?.username}`,
+      });
 
       setInterval(
         async () => await healthCheck(bot, "Bot healthy."),
