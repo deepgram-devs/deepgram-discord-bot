@@ -1,18 +1,16 @@
 import { AnyThreadChannel, ChannelType } from "discord.js";
 
-import { ResponseText } from "../config/ResponseText";
 import { ExtendedClient } from "../interfaces/ExtendedClient";
 import { errorHandler } from "../utils/errorHandler";
-import { sleep } from "../utils/sleep";
 import { sendToSupabase } from "../utils/sendToSupabase";
 
 /**
- * Handles the thread create event.
+ * Handles the thread delete event.
  *
  * @param {ExtendedClient} bot The bot's Discord instance.
  * @param {AnyThreadChannel} thread The thread channel payload from Discord.
  */
-export const threadCreate = async (
+export const threadDelete = async (
   bot: ExtendedClient,
   thread: AnyThreadChannel
 ) => {
@@ -31,22 +29,8 @@ export const threadCreate = async (
     /**
      * We're logging our support thread messages out to supabase for automation purposes.
      */
-    await sendToSupabase("create", bot, thread);
-
-    const isMovedPost = thread.ownerId === bot.user?.id;
-
-    /**
-     * We need to wait a bit here. Sometimes a thread create event transmits and is received
-     * before the initial thread message is sent. This avoids errors from that race condition.
-     */
-    await sleep(1000);
-
-    await thread.send({
-      content: isMovedPost
-        ? ResponseText.MovedThread
-        : ResponseText.CreatedThread,
-    });
+    await sendToSupabase("delete", bot, thread);
   } catch (err) {
-    await errorHandler(bot, "thread create", err);
+    await errorHandler(bot, "thread delete", err);
   }
 };

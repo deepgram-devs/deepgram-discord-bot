@@ -1,4 +1,4 @@
-import { Client, Events } from "discord.js";
+import { Client, Events, Message } from "discord.js";
 import { scheduleJob } from "node-schedule";
 
 import { IntentOptions } from "./config/IntentOptions";
@@ -18,6 +18,8 @@ import { loadContexts } from "./utils/loadContexts";
 import { logHandler } from "./utils/logHandler";
 import { registerCommands } from "./utils/registerCommands";
 import { validateEnv } from "./utils/validateEnv";
+import { threadUpdate } from "./events/threadUpdate";
+import { threadDelete } from "./events/threadDelete";
 
 (async () => {
   try {
@@ -63,8 +65,32 @@ import { validateEnv } from "./utils/validateEnv";
     });
 
     bot.on(Events.ThreadCreate, async (thread) => {
+      console.log(thread);
       await threadCreate(bot, thread);
     });
+
+    bot.on(Events.ThreadUpdate, async (newThread, oldThread) => {
+      console.log(newThread, oldThread);
+      // await threadUpdate(bot, newThread, oldThread);
+    });
+
+    bot.on(Events.ThreadDelete, async (thread) => {
+      console.log(thread);
+      // await threadDelete(bot, thread);
+    });
+
+    bot.on(Events.MessageCreate, async (message: Message) => {
+      console.log(message, message.channel);
+    });
+
+    bot.on(Events.MessageUpdate, async (message) => {
+      console.log(message);
+    });
+
+    bot.on(Events.MessageDelete, async (message) => {
+      console.log(message);
+    });
+
     await bot.login(bot.env.token);
   } catch (err) {
     const bot = new Client({ intents: IntentOptions }) as ExtendedClient;
