@@ -27,10 +27,45 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
       .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0));
 
     for (const thread of threadsToProcess) {
-      const lastMessage = (await thread.messages.fetch({ limit: 1 })).first();
-      const latestMessages = await thread.messages.fetch();
-      const starterMessage = await thread.fetchStarterMessage();
-      const owner = await thread.fetchOwner();
+      const lastMessageQuery = await thread.messages
+        .fetch({ limit: 1 })
+        .catch(async (err) => {
+          await errorHandler(
+            bot,
+            `fetch messages for thread ${thread.id}`,
+            err
+          );
+        });
+      const latestMessages = await thread.messages
+        .fetch()
+        .catch(async (err) => {
+          await errorHandler(
+            bot,
+            `fetch messages for thread ${thread.id}`,
+            err
+          );
+        });
+      const starterMessage = await thread
+        .fetchStarterMessage()
+        .catch(async (err) => {
+          await errorHandler(
+            bot,
+            `fetch starter message for thread ${thread.id}`,
+            err
+          );
+        });
+      if (!lastMessageQuery || !latestMessages || !starterMessage) {
+        await thread
+          .setAppliedTags([...thread.appliedTags, bot.cache.inactiveTag])
+          .catch(
+            async (err) => await errorHandler(bot, "set inactive tag", err)
+          );
+        continue;
+      }
+      const lastMessage = lastMessageQuery.first();
+      const owner = await thread.fetchOwner().catch(async (err) => {
+        await errorHandler(bot, `fetch owner for thread ${thread.id}`, err);
+      });
       /**
        * If the bot can't see the last message or the thread owner, then
        * apply the inactive label so the bot doesn't process it anymore. Since
@@ -49,19 +84,22 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
        * for this long needs the label applied.
        * Additionally, let's stop caring if the thread is even older - let's just
        * slap the label on anything that isn't labelled.
+       * Archived threads should be labelled, too.
        */
       if (
-        lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 14 &&
-        !thread.appliedTags.includes(bot.cache.inactiveTag)
+        (lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 14 &&
+          !thread.appliedTags.includes(bot.cache.inactiveTag)) ||
+        thread.archived
       ) {
         /**
          * Threads that are 14 days old should have been auto-archived by Discord as
          * this is the maximum TTL for a thread. So we just need to label them.
          */
-        await thread.setAppliedTags([
-          ...thread.appliedTags,
-          bot.cache.inactiveTag,
-        ]);
+        await thread
+          .setAppliedTags([...thread.appliedTags, bot.cache.inactiveTag])
+          .catch(
+            async (err) => await errorHandler(bot, "set inactive tag", err)
+          );
         continue;
       }
       /**
@@ -105,16 +143,25 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
          * message. Instead of responding again, we just want to close it.
          */
         if (lastMessage.author.id === bot.user?.id) {
-          await thread.setAppliedTags([
-            ...thread.appliedTags,
-            bot.cache.inactiveTag,
-          ]);
-          await thread.setArchived(true);
+          await thread
+            .setAppliedTags([...thread.appliedTags, bot.cache.inactiveTag])
+            .catch(
+              async (err) => await errorHandler(bot, "set inactive tag", err)
+            );
+          await thread
+            .setArchived(true)
+            .catch(
+              async (err) => await errorHandler(bot, "set archived thread", err)
+            );
           continue;
         }
-        await thread.send({
-          content: `Hey there <@!${owner.id}>~! Did you forget about this thread? Let us know if you still need help!`,
-        });
+        await thread
+          .send({
+            content: `Hey there <@!${owner.id}>~! Did you forget about this thread? Let us know if you still need help!`,
+          })
+          .catch(
+            async (err) => await errorHandler(bot, "send autoresponse", err)
+          );
       }
     }
   } catch (err) {
