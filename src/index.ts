@@ -1,9 +1,14 @@
-import { Client, Events, Message } from "discord.js";
+import { Client, Events, Message, PartialMessage } from "discord.js";
 import { scheduleJob } from "node-schedule";
 
 import { IntentOptions } from "./config/IntentOptions";
 import { interactionCreate } from "./events/interactionCreate";
+import { messageCreate } from "./events/messageCreate";
+import { messageDelete } from "./events/messageDelete";
+import { messageUpdate } from "./events/messageUpdate";
 import { threadCreate } from "./events/threadCreate";
+import { threadDelete } from "./events/threadDelete";
+import { threadUpdate } from "./events/threadUpdate";
 import { ExtendedClient } from "./interfaces/ExtendedClient";
 import { sendStickyMessage } from "./modules/sendStickyMessage";
 import { aggregateDailyUnansweredThreads } from "./modules/threads/aggregateDailyUnansweredThreads";
@@ -18,8 +23,6 @@ import { loadContexts } from "./utils/loadContexts";
 import { logHandler } from "./utils/logHandler";
 import { registerCommands } from "./utils/registerCommands";
 import { validateEnv } from "./utils/validateEnv";
-import { threadUpdate } from "./events/threadUpdate";
-import { threadDelete } from "./events/threadDelete";
 
 (async () => {
   try {
@@ -65,31 +68,37 @@ import { threadDelete } from "./events/threadDelete";
     });
 
     bot.on(Events.ThreadCreate, async (thread) => {
-      console.log(thread);
       await threadCreate(bot, thread);
     });
 
-    bot.on(Events.ThreadUpdate, async (newThread, oldThread) => {
-      console.log(newThread, oldThread);
-      // await threadUpdate(bot, newThread, oldThread);
+    bot.on(Events.ThreadUpdate, async (_oldThread, newThread) => {
+      await threadUpdate(bot, newThread);
     });
 
     bot.on(Events.ThreadDelete, async (thread) => {
-      console.log(thread);
-      // await threadDelete(bot, thread);
+      await threadDelete(bot, thread);
     });
 
     bot.on(Events.MessageCreate, async (message: Message) => {
-      console.log(message, message.channel);
+      await messageCreate(bot, message);
     });
 
-    bot.on(Events.MessageUpdate, async (message) => {
-      console.log(message);
+    bot.on(
+      Events.MessageUpdate,
+      async (_oldMessage, message: Message | PartialMessage) => {
+        await messageUpdate(bot, message);
+      }
+    );
+
+    bot.on(Events.MessageDelete, async (message: Message | PartialMessage) => {
+      await messageDelete(bot, message);
     });
 
-    bot.on(Events.MessageDelete, async (message) => {
-      console.log(message);
-    });
+    // bot.on(Events.MessageReactionAdd, async (_reaction, _user) => {
+    // });
+
+    // bot.on(Events.MessageReactionRemove, async (_reaction, _user) => {
+    // });
 
     await bot.login(bot.env.token);
   } catch (err) {

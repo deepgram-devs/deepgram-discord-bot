@@ -2,7 +2,9 @@ import { AnyThreadChannel, ChannelType } from "discord.js";
 
 import { ExtendedClient } from "../interfaces/ExtendedClient";
 import { errorHandler } from "../utils/errorHandler";
-import { sendToSupabase } from "../utils/sendToSupabase";
+import { sendThreadToSupabase } from "../utils/sendToSupabase";
+
+import { ACTION } from "./action.types";
 
 /**
  * Handles the thread delete event.
@@ -29,7 +31,7 @@ export const threadDelete = async (
     /**
      * We're logging our support thread messages out to supabase for automation purposes.
      */
-    await sendToSupabase("delete", bot, thread);
+    await sendThreadToSupabase(ACTION.THREAD_DELETE, bot, thread);
   } catch (err) {
     await errorHandler(bot, "thread delete", err);
   }

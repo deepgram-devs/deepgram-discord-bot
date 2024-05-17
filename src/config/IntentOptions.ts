@@ -1,7 +1,12 @@
 import { GatewayIntentBits } from "discord.js";
 
-const { Guilds, GuildMessages, MessageContent, GuildMembers } =
-  GatewayIntentBits;
+const {
+  Guilds,
+  GuildMessages,
+  MessageContent,
+  GuildMembers,
+  GuildMessageReactions,
+} = GatewayIntentBits;
 
 export const IntentOptions = [
   Guilds,
@@ -12,4 +17,5 @@ export const IntentOptions = [
    * the member cache updated on join/leave, for the answer command.
    */
   GuildMembers,
+  GuildMessageReactions,
 ];

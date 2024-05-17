@@ -2,18 +2,20 @@ import { AnyThreadChannel, ChannelType } from "discord.js";
 
 import { ExtendedClient } from "../interfaces/ExtendedClient";
 import { errorHandler } from "../utils/errorHandler";
-import { sendToSupabase } from "../utils/sendToSupabase";
+import { sendThreadToSupabase } from "../utils/sendToSupabase";
+
+import { ACTION } from "./action.types";
 
 /**
  * Handles the thread update event.
  *
  * @param {ExtendedClient} bot The bot's Discord instance.
- * @param {AnyThreadChannel} thread The thread channel payload from Discord.
+ * @param {AnyThreadChannel} newThread The thread channel payload from Discord.
+ * @returns {void} - Void.
  */
 export const threadUpdate = async (
   bot: ExtendedClient,
-  newThread: AnyThreadChannel,
-  oldThread: AnyThreadChannel
+  newThread: AnyThreadChannel
 ) => {
   try {
     /**
@@ -26,11 +28,10 @@ export const threadUpdate = async (
     ) {
       return;
     }
-
+    await sendThreadToSupabase(ACTION.THREAD_UPDATE, bot, newThread);
     /**
      * We're logging our support thread messages out to supabase for automation purposes.
      */
-    await sendToSupabase("update", bot, { ...newThread, previous: oldThread });
   } catch (err) {
     await errorHandler(bot, "thread update", err);
   }

@@ -3,8 +3,10 @@ import { AnyThreadChannel, ChannelType } from "discord.js";
 import { ResponseText } from "../config/ResponseText";
 import { ExtendedClient } from "../interfaces/ExtendedClient";
 import { errorHandler } from "../utils/errorHandler";
+import { sendThreadToSupabase } from "../utils/sendToSupabase";
 import { sleep } from "../utils/sleep";
-import { sendToSupabase } from "../utils/sendToSupabase";
+
+import { ACTION } from "./action.types";
 
 /**
  * Handles the thread create event.
@@ -31,8 +33,7 @@ export const threadCreate = async (
     /**
      * We're logging our support thread messages out to supabase for automation purposes.
      */
-    await sendToSupabase("create", bot, thread);
-
+    await sendThreadToSupabase(ACTION.THREAD_CREATE, bot, thread);
     const isMovedPost = thread.ownerId === bot.user?.id;
 
     /**
