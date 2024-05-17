@@ -21,4 +21,4 @@ kill_timeout = 5
   min_machines_running = 1
 
 [[vm]]
-  size = 'shared-1x'
+  size = 'shared-cpu-1x'
