@@ -13,6 +13,12 @@
       }
     },
     {
+      "files": "src/utils/sendToSupabase.ts",
+      "rules": {
+        "camelcase": "off"
+      }
+    },
+    {
       "files": "src/contexts/productBoard.ts",
       "rules": {
         "camelcase": [
