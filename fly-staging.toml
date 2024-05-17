@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "deepgram-discord-bot"
+app = "deepgram-discord-bot-staging"
 primary_region = 'sjc'
 
 kill_signal = "SIGINT"
@@ -21,4 +21,4 @@ kill_timeout = 5
   min_machines_running = 1
 
 [[vm]]
-  size = 'performance-1x'
+  size = 'shared-1x'
