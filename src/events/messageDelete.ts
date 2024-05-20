@@ -8,7 +8,7 @@ import { sleep } from "../utils/sleep";
 import { ACTION } from "./action.types";
 
 /**
- * Handles the thread create event.
+ * Handles the thread delete event.
  *
  * @param {ExtendedClient} bot The bot's Discord instance.
  * @param {Message | PartialMessage} message The thread channel payload from Discord.
@@ -28,6 +28,6 @@ export const messageDelete = async (
     await sendMessageToSupabase(ACTION.MESSAGE_DELETE, bot, message);
     await sleep(1000);
   } catch (err) {
-    await errorHandler(bot, "message create", err);
+    await errorHandler(bot, "message delete", err);
   }
 };
