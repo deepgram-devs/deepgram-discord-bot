@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for deepgram-discord-bot-staging on 2024-05-17T13:35:56+01:00
+# fly.toml app configuration file generated for deepgram-discord-bot on 2023-07-27T10:31:51+01:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'deepgram-discord-bot'
+app = "deepgram-discord-bot-staging"
 primary_region = 'sjc'
 
 kill_signal = "SIGINT"
@@ -21,4 +21,4 @@ kill_timeout = 5
   min_machines_running = 1
 
 [[vm]]
-  size = 'performance-1x'
+  size = 'shared-cpu-1x'

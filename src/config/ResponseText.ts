@@ -30,4 +30,4 @@ export enum ResponseText {
 /**
  * This is separate so that the environment value can be interpolated.
  */
-export const StickyMessage = `Deepgram Community Maintainers will be participating in an in-person offsite the week Apr 29th - May 3rd.\n- During this period our response times will be slower.\n- We'll return to or normal level of responsiveness after this event.\n- Thank you for your continued engagement and community participation.`;
+export const StickyMessage = `We welcome discussions in this channel, but for technical help, please use <#${process.env.HELP_CHANNEL_ID}>.`;
