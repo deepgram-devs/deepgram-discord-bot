@@ -110,6 +110,8 @@ export const messageTransform = (message: Message | PartialMessage) => {
     };
     messageJson.author = messageAuthorValue;
   }
+  // Set to empty array same as attachments
+  messageJson.reactions = [];
   for (const [, messageReactionValue] of message.reactions.cache) {
     const messageReactionJson =
       messageReactionValue.toJSON() as TransformMessageReaction;

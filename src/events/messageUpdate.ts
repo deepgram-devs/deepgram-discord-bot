@@ -8,7 +8,7 @@ import { sleep } from "../utils/sleep";
 import { ACTION } from "./action.types";
 
 /**
- * Handles the thread create event.
+ * Handles the message update event.
  *
  * @param {ExtendedClient} bot The bot's Discord instance.
  * @param {Message | PartialMessage} message The thread channel payload from Discord.

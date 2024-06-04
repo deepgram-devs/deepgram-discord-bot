@@ -5,6 +5,7 @@ import { Database } from "../database.types";
 import { ACTION } from "../events/action.types";
 import { ExtendedClient } from "../interfaces/ExtendedClient";
 
+import { supabaseErrorTransformer } from "./supabaseErrorTransformer";
 import {
   messageTransform,
   threadAction,
@@ -47,7 +48,7 @@ export const sendThreadToSupabase = async (
         .insert([threadJson])
         .select();
       if (error) {
-        return Promise.reject(error);
+        throw new Error(supabaseErrorTransformer(error));
       }
       return data;
     }
@@ -69,7 +70,7 @@ export const sendThreadToSupabase = async (
         .select();
 
       if (error) {
-        return Promise.reject(error);
+        throw new Error(supabaseErrorTransformer(error));
       }
 
       return data;
@@ -79,7 +80,9 @@ export const sendThreadToSupabase = async (
         .from("community_raw")
         .select("*")
         .eq("origin", thread.id);
-
+      if (error) {
+        throw new Error(supabaseErrorTransformer(error));
+      }
       if (data && data.length > 0) {
         const { raw, ...rest } = data[0];
         const deletedRawData = Object.assign(
@@ -98,14 +101,12 @@ export const sendThreadToSupabase = async (
           .select();
 
         if (deletePostError) {
-          return Promise.reject(deletePostError);
+          throw new Error(supabaseErrorTransformer(deletePostError));
         }
         return deletedPost;
+      } else {
+        throw new Error("Post not found while deleting.");
       }
-      if (error) {
-        return Promise.reject(error);
-      }
-      return;
     }
     default: {
       return;
@@ -116,13 +117,13 @@ export const sendThreadToSupabase = async (
 /**
  *
  * @param {typeof ACTION} action - Create, update or delete.
- * @param {ExtendedClient} bot - Bot instance.
+ * @param {ExtendedClient} _bot - Bot instance.
  * @param {Message} message - Message instance.
  * @returns {any} - Any.
  */
 export const sendMessageToSupabase = async (
   action: string,
-  bot: ExtendedClient,
+  _bot: ExtendedClient,
   message: Message | PartialMessage
 ) => {
   switch (action) {
@@ -134,7 +135,7 @@ export const sendMessageToSupabase = async (
           .select("*")
           .eq("origin", threadId);
         if (error) {
-          return Promise.reject(error);
+          throw new Error(supabaseErrorTransformer(error));
         }
         if (threadData && threadData.length > 0) {
           const { raw } = threadData[0];
@@ -164,13 +165,18 @@ export const sendMessageToSupabase = async (
                 .eq("origin", threadId)
                 .select();
             if (createMessageError) {
-              return Promise.reject(createMessageError);
+              throw new Error(supabaseErrorTransformer(createMessageError));
             }
             return updatedPost;
           }
+          // Do nothing
+          return;
+        } else {
+          throw new Error("Post not found while creating a message.");
         }
+      } else {
+        throw new Error("Message doesn't belong to helpChannel");
       }
-      return Promise.reject("Message doesn't belong to helpChannel");
     }
     case ACTION.MESSAGE_UPDATE: {
       // Same as message create, let it be repeating
@@ -182,7 +188,7 @@ export const sendMessageToSupabase = async (
           .select("*")
           .eq("origin", threadId);
         if (error) {
-          return Promise.reject(error);
+          throw new Error(supabaseErrorTransformer(error));
         }
         if (threadData && threadData.length > 0) {
           const { raw } = threadData[0];
@@ -204,21 +210,24 @@ export const sendMessageToSupabase = async (
             []
           );
           if (!found) {
-            messages.push(transformedMessage);
-            const { data: updatedPost, error: createMessageError } =
-              await supabase
-                .from("community_raw")
-                .update({ raw: Object.assign({}, raw, { messages }) })
-                .eq("origin", threadId)
-                .select();
-            if (createMessageError) {
-              return Promise.reject(createMessageError);
-            }
-            return updatedPost;
+            throw new Error("Message not found while updating.");
           }
+          const { data: updatedPost, error: updateMessageError } =
+            await supabase
+              .from("community_raw")
+              .update({ raw: Object.assign({}, raw, { messages }) })
+              .eq("origin", threadId)
+              .select();
+          if (updateMessageError) {
+            throw new Error(supabaseErrorTransformer(updateMessageError));
+          }
+          return updatedPost;
+        } else {
+          throw new Error("Post not found while updating a message.");
         }
+      } else {
+        throw new Error("Message doesn't belong to helpChannel");
       }
-      return Promise.reject("Message doesn't belong to helpChannel");
     }
     case ACTION.MESSAGE_DELETE: {
       const threadId = message.channel.id;
@@ -228,15 +237,17 @@ export const sendMessageToSupabase = async (
           .select("*")
           .eq("origin", threadId);
         if (error) {
-          return Promise.reject(error);
+          throw new Error(supabaseErrorTransformer(error));
         }
         if (threadData && threadData.length > 0) {
           const { raw } = threadData[0];
           let { messages } = JSON.parse(JSON.stringify(raw)) as TransformPost;
           const transformedMessage = messageTransform(message);
+          let found = false;
           messages = messages.reduce(
             (msgs: TransformMessage[], m: TransformMessage) => {
               if (m.id === transformedMessage.id) {
+                found = true;
                 // Transformed message can be partial, so we need the
                 // current values of message from raw
                 msgs.push({ ...m, ...transformedMessage, deleted: true });
@@ -247,19 +258,25 @@ export const sendMessageToSupabase = async (
             },
             []
           );
-          const { data: updatedPost, error: createMessageError } =
+          if (!found) {
+            throw new Error("Message not found while deleting.");
+          }
+          const { data: updatedPost, error: deleteMessageError } =
             await supabase
               .from("community_raw")
               .update({ raw: Object.assign({}, raw, { messages }) })
               .eq("origin", threadId)
               .select();
-          if (createMessageError) {
-            return Promise.reject(createMessageError);
+          if (deleteMessageError) {
+            throw new Error(supabaseErrorTransformer(deleteMessageError));
           }
           return updatedPost;
+        } else {
+          throw new Error("Post not found while deleting a message.");
         }
+      } else {
+        throw new Error("Message doesn't belong to helpChannel");
       }
-      return Promise.reject("Message doesn't belong to helpChannel");
     }
     default: {
       return;
