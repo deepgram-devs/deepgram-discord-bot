@@ -27,6 +27,18 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
       .sort((a, b) => (b.createdTimestamp ?? 0) - (a.createdTimestamp ?? 0));
 
     for (const thread of threadsToProcess) {
+      /**
+       * If it's somehow archived but never got labelled, mark it as inactive.
+       */
+      if (thread.archived) {
+        await thread.setArchived(false);
+        await thread.setAppliedTags([
+          ...thread.appliedTags,
+          bot.cache.inactiveTag,
+        ]);
+        await thread.setArchived(true);
+        continue;
+      }
       const lastMessageQuery = await thread.messages
         .fetch({ limit: 1 })
         .catch(async (err) => {
@@ -87,19 +99,26 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
        * Archived threads should be labelled, too.
        */
       if (
-        (lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 14 &&
-          !thread.appliedTags.includes(bot.cache.inactiveTag)) ||
-        thread.archived
+        lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 14 &&
+        !thread.appliedTags.includes(bot.cache.inactiveTag)
       ) {
         /**
          * Threads that are 14 days old should have been auto-archived by Discord as
          * this is the maximum TTL for a thread. So we just need to label them.
          */
+        if (thread.archived) {
+          /**
+           * Cannot apply tags without unarchiving. Theoretically this should never be
+           * true, as archived threads are handled earlier. But let's be safe.
+           */
+          await thread.setArchived(false);
+        }
         await thread
           .setAppliedTags([...thread.appliedTags, bot.cache.inactiveTag])
           .catch(
             async (err) => await errorHandler(bot, "set inactive tag", err)
           );
+        await thread.setArchived(true);
         continue;
       }
       /**
@@ -108,7 +127,7 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
        * Note that this won't work as expected for posts moved by
        * the bot.
        */
-      if (lastMessage.author.id === owner.id) {
+      if (lastMessage.author.id === owner.id && owner.id !== bot.user?.id) {
         continue;
       }
       /**
@@ -137,7 +156,7 @@ export const autorespondToThreads = async (bot: ExtendedClient) => {
       ) {
         continue;
       }
-      if (lastMessage.createdTimestamp > Date.now() - 1000 * 60 * 60 * 24 * 7) {
+      if (lastMessage.createdTimestamp < Date.now() - 1000 * 60 * 60 * 24 * 7) {
         /**
          * When the last message is from the bot, it's the auto-response
          * message. Instead of responding again, we just want to close it.
