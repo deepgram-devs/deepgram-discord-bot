@@ -11,10 +11,12 @@ import { errorHandler } from "../utils/errorHandler";
 export const sendStickyMessage = async (bot: ExtendedClient) => {
   try {
     const lastMessage = (
-      await bot.cache.generalChannel.messages.fetch({
-        limit: 1,
-      })
-    ).first();
+      await bot.cache.generalChannel.messages
+        .fetch({
+          limit: 1,
+        })
+        .catch(() => null)
+    )?.first();
     if (!lastMessage) {
       return;
     }
@@ -24,9 +26,9 @@ export const sendStickyMessage = async (bot: ExtendedClient) => {
     }
 
     if (bot.cache.lastSticky) {
-      const lastSticky = await bot.cache.generalChannel.messages.fetch(
-        bot.cache.lastSticky
-      );
+      const lastSticky = await bot.cache.generalChannel.messages
+        .fetch(bot.cache.lastSticky)
+        .catch(() => null);
       if (lastSticky) {
         await lastSticky.delete();
       }
