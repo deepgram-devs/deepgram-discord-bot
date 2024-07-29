@@ -30,4 +30,4 @@ export enum ResponseText {
 /**
  * This is separate so that the environment value can be interpolated.
  */
-export const StickyMessage = `We welcome discussions in this channel, but for technical help, please use <#${process.env.HELP_CHANNEL_ID}>.`;
+export const StickyMessage = `We welcome discussions in this channel, but for technical help, please use <#${process.env.HELP_CHANNEL_ID}> or <#1251657197885063249>.`;
