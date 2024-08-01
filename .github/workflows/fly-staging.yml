@@ -2,9 +2,6 @@ name: Build and deploy to Staging
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - staging
 
 jobs:
   cd:
